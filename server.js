@@ -3,7 +3,10 @@ const cors = require("cors");
 
 const app = express();
 
-app.use(cors()); // 🔥 LIBERA CORS
+app.use(cors({
+  origin: "*"
+}));
+
 app.use(express.json());
 
 app.get("/", (req, res) => {
@@ -13,7 +16,7 @@ app.get("/", (req, res) => {
 app.post("/analise", (req, res) => {
   const { item } = req.body;
 
-  return res.json({
+  res.json({
     causa_raiz: "Desgaste por fadiga em " + item,
     acao_corretiva: "Substituir componente",
     custo: 1500,
