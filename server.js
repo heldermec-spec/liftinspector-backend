@@ -4,33 +4,49 @@ const { Pool } = require("pg");
 
 const app = express();
 
-// 🔥 CORS liberado
 app.use(cors());
 app.use(express.json());
 
-// 🔥 conexão banco (Supabase)
+// 🔥 conexão banco
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
 
-// 🔥 teste API
+// 🔥 rota base
 app.get("/", (req, res) => {
   res.send("API LexusLiftPro rodando 🚀");
 });
 
-// 🔥 teste
-app.get("/analise", (req, res) => {
-  res.json({ status: "ok" });
+// 🔥 dashboard
+app.get("/dashboard", async (req, res) => {
+  try {
+    const totalInspecoes = await pool.query("SELECT COUNT(*) FROM inspecoes");
+    const naoConformes = await pool.query("SELECT COUNT(*) FROM inspecoes WHERE status = 'nao_conforme'");
+    const osAbertas = await pool.query("SELECT COUNT(*) FROM ordens_servico WHERE status = 'aberta'");
+    const custoTotal = await pool.query("SELECT COALESCE(SUM(custo),0) as total FROM ordens_servico");
+    const listaOS = await pool.query("SELECT * FROM ordens_servico ORDER BY created_at DESC LIMIT 10");
+
+    res.json({
+      totalInspecoes: totalInspecoes.rows[0].count,
+      naoConformes: naoConformes.rows[0].count,
+      osAbertas: osAbertas.rows[0].count,
+      custoTotal: custoTotal.rows[0].total,
+      listaOS: listaOS.rows
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ erro: error.message });
+  }
 });
 
-// 🔥 rota principal de inspeção
+// 🔥 inspeção
 app.post("/inspecao", async (req, res) => {
   const { equipamento_id, item, status, observacao } = req.body;
 
   try {
 
-    // 🔹 salvar inspeção
     const inspecao = await pool.query(
       `INSERT INTO inspecoes (equipamento_id, item, status, observacao)
        VALUES ($1, $2, $3, $4)
@@ -40,7 +56,6 @@ app.post("/inspecao", async (req, res) => {
 
     let os = null;
 
-    // 🔥 gerar OS automática se não conforme
     if (status === "nao_conforme") {
 
       const causa = "Desgaste identificado";
@@ -70,17 +85,14 @@ app.post("/inspecao", async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Erro detalhado:", error);
-
+    console.error(error);
     res.status(500).json({
       sucesso: false,
-      erro: "Erro ao salvar no banco",
-      detalhe: error.message
+      erro: error.message
     });
   }
 });
 
-// 🔥 iniciar servidor
 app.listen(process.env.PORT || 3000, () => {
   console.log("Servidor rodando 🚀");
 });
