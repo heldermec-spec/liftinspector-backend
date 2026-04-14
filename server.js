@@ -1,6 +1,9 @@
 const express = require("express");
+const cors = require("cors");
+
 const app = express();
 
+app.use(cors()); // 🔥 LIBERA CORS
 app.use(express.json());
 
 app.get("/", (req, res) => {
@@ -11,7 +14,7 @@ app.post("/analise", (req, res) => {
   const { item } = req.body;
 
   return res.json({
-    causa_raiz: "Desgaste por fadiga",
+    causa_raiz: "Desgaste por fadiga em " + item,
     acao_corretiva: "Substituir componente",
     custo: 1500,
     tempo: 4,
@@ -19,6 +22,4 @@ app.post("/analise", (req, res) => {
   });
 });
 
-app.listen(process.env.PORT || 3000, () => {
-  console.log("Servidor rodando");
-});
+app.listen(process.env.PORT || 3000);
