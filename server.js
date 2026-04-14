@@ -3,18 +3,11 @@ const cors = require("cors");
 
 const app = express();
 
-app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST", "OPTIONS"],
-  allowedHeaders: ["Content-Type"]
-}));
-
-app.options("*", cors());
-
+app.use(cors());
 app.use(express.json());
 
 app.get("/", (req, res) => {
-  res.send("API LexusLiftPro rodando 🚀");
+  res.send("API rodando 🚀");
 });
 
 app.get("/analise", (req, res) => {
@@ -22,14 +15,9 @@ app.get("/analise", (req, res) => {
 });
 
 app.post("/analise", (req, res) => {
-  const { item } = req.body;
-
   res.json({
-    causa_raiz: "Desgaste por fadiga em " + item,
-    acao_corretiva: "Substituir componente",
-    custo: 1500,
-    tempo: 4,
-    prioridade: "urgente"
+    resultado: "funcionando",
+    item: req.body.item
   });
 });
 
